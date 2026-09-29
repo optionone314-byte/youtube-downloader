@@ -56,13 +56,11 @@ jobs:
           key: ${{ runner.os }}-android-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-android-
 
-      - name: Build APK
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: src-tauri
-          args: --target aarch64-linux-android --apk --ci
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Build Android APK
+        run: cargo tauri android build --target aarch64-linux-android --apk --ci
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
