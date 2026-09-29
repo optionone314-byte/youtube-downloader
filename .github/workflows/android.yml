@@ -60,7 +60,7 @@ jobs:
         run: cargo install tauri-cli --version "^2.0" --locked
 
       - name: Build Android APK
-        run: cargo tauri android build --target aarch64-linux-android --apk --ci
+        run: cargo tauri android build --target aarch64 --apk --ci
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
