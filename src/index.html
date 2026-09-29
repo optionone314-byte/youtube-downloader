@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>YouTube Downloader</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 28 28" width="26" height="26" aria-hidden="true">
+          <rect x="1" y="4" width="26" height="20" rx="6" fill="#ff0033"/>
+          <path d="M12 9.6v8.8L19.4 14z" fill="#fff"/>
+        </svg>
+      </span>
+      <div>
+        <h1>YouTube Downloader</h1>
+        <p>Every format. Your pick. One click.</p>
+      </div>
+    </div>
+    <div id="enginePill" class="pill idle" title="Download engine status">
+      <span class="dot"></span><span id="engineText">Checking engine…</span>
+    </div>
+  </header>
+
+  <div id="setupBanner" class="banner hidden">
+    <div class="banner-body">
+      <strong>Download engine missing</strong>
+      <p>The app needs the <code>yt-dlp</code> engine (free, open-source) to read formats. It will be downloaded automatically (~15&nbsp;MB).</p>
+      <div id="setupProgress" class="setup-progress hidden">
+        <div class="bar"><div id="setupBar" class="fill"></div></div>
+        <span id="setupMsg">Starting…</span>
+      </div>
+    </div>
+    <button id="setupBtn" class="btn primary">Install engine</button>
+  </div>
+
+  <main class="wrap">
+    <!-- URL input -->
+    <section class="card url-card">
+      <label for="urlInput">Video link — any supported site</label>
+      <div class="url-row">
+        <input id="urlInput" type="url" spellcheck="false" autocomplete="off"
+               placeholder="Paste a link: YouTube, Instagram, TikTok, X, Facebook, Vimeo, Twitch, SoundCloud…" />
+        <button id="pasteBtn" class="btn ghost" title="Paste from clipboard">Paste</button>
+        <button id="fetchBtn" class="btn primary" title="Load all available formats (Enter)">
+          <span id="fetchLabel">Get formats</span>
+        </button>
+      </div>
+      <p class="hint">Powered by <b>yt-dlp</b> — supports <b>1800+ sites</b>. Single videos, reels, shorts and posts. Some sites (Instagram, X, Facebook) need the cookie setting below.</p>
+      <p id="fetchError" class="error hidden"></p>
+      <div id="fetchSkeleton" class="skeleton hidden">
+        <div class="sk thumb"></div>
+        <div class="sk-lines"><div class="sk line w80"></div><div class="sk line w60"></div><div class="sk line w40"></div></div>
+      </div>
+    </section>
+
+    <!-- Video info -->
+    <section id="videoCard" class="card video-card hidden">
+      <img id="vThumb" class="thumb" alt="Video thumbnail" referrerpolicy="no-referrer" crossorigin="anonymous" />
+      <div class="v-meta">
+        <h2 id="vTitle"></h2>
+        <div class="v-stats">
+          <span id="vSite" class="chip site-chip hidden"></span>
+          <span id="vUploader" class="uploader"></span>
+          <span id="vDuration" class="chip"></span>
+          <span id="vViews" class="chip"></span>
+          <span id="vDate" class="chip"></span>
+        </div>
+        <p id="vDesc" class="desc"></p>
+        <div class="v-actions">
+          <button id="openOrigBtn" class="btn small ghost">Open original</button>
+          <button id="copyLinkBtn" class="btn small ghost">Copy link</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick downloads -->
+    <section id="quickCard" class="card hidden">
+      <h3>Quick download</h3>
+      <div class="quick-grid">
+        <button class="quick" data-q="best"><b>Best quality</b><span>highest available</span></button>
+        <button class="quick" data-q="1080"><b>Max 1080p</b><span>Full HD</span></button>
+        <button class="quick" data-q="720"><b>Max 720p</b><span>smaller file</span></button>
+        <button class="quick" data-q="mp3"><b>Audio MP3</b><span>best quality</span></button>
+      </div>
+    </section>
+
+    <!-- Playlist -->
+    <section id="plCard" class="card hidden">
+      <div class="pl-head">
+        <div style="min-width:0">
+          <h3 id="plTitle"></h3>
+          <p id="plMeta" class="hint" style="margin:2px 0 0"></p>
+        </div>
+        <div class="pl-tools">
+          <button id="plExpand" class="btn small ghost">▾ Show videos</button>
+          <button id="plToggleAll" class="btn small ghost">Deselect all</button>
+        </div>
+      </div>
+      <div class="pl-summary">
+        <span id="plSelected" class="count">0 selected</span>
+        <div class="pl-dl">
+          <select id="plQuality" title="Quality for the whole playlist">
+            <option value="best">Best available</option>
+            <option value="1080">Max 1080p</option>
+            <option value="720">Max 720p</option>
+            <option value="mp3">Audio only (MP3)</option>
+          </select>
+          <button id="plDownload" class="btn primary">Download selected</button>
+        </div>
+      </div>
+      <div id="plList" class="pl-list hidden"></div>
+    </section>
+
+    <!-- All formats -->
+    <section id="formatsCard" class="card hidden">
+      <div class="formats-head">
+        <h3>All formats <span id="fmtCount" class="count"></span></h3>
+        <div class="formats-tools">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-f="all">All</button>
+            <button class="tab" data-f="combined">Video + audio</button>
+            <button class="tab" data-f="video">Video only</button>
+            <button class="tab" data-f="audio">Audio only</button>
+          </div>
+          <select id="sortSel" title="Sort formats">
+            <option value="quality">Sort: Best first</option>
+            <option value="size-desc">Sort: Largest first</option>
+            <option value="size-asc">Sort: Smallest first</option>
+          </select>
+        </div>
+      </div>
+      <p class="merge-note">Each row below merges that video quality with the best audio into a single MP4 file.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Quality</th><th>Type</th><th>File</th><th>Video</th><th>Audio</th>
+              <th>FPS</th><th>Size</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="fmtBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Downloads -->
+    <section class="card">
+      <div class="dl-head">
+        <h3>Downloads <span id="dlCount" class="count hidden"></span></h3>
+        <button id="clearDoneBtn" class="btn small ghost">Clear finished</button>
+      </div>
+      <div id="dlEmpty" class="empty">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+        </svg>
+        <p><b>No downloads yet.</b><br/>Pick a format above and it will show up here with live progress.</p>
+      </div>
+      <div id="dlList" class="dl-list"></div>
+    </section>
+
+    <!-- Settings -->
+    <section class="card settings">
+      <div>
+        <h3>Settings</h3>
+        <p id="folderPath" class="folder-path">…</p>
+      </div>
+      <div class="settings-btns">
+        <button id="changeFolderBtn" class="btn ghost">Change…</button>
+        <button id="openFolderBtn" class="btn ghost">Open folder</button>
+      </div>
+    </section>
+
+    <!-- Cookies -->
+    <section class="card settings">
+      <div>
+        <h3>Browser cookies</h3>
+        <p class="hint">Some sites (Instagram, X, Facebook) hide media unless you're logged in. Pick the browser you're signed in to — the app reads its cookies locally. Nothing is uploaded or stored.</p>
+      </div>
+      <div class="settings-btns">
+        <select id="cookieSel" title="Browser to read cookies from" aria-label="Browser cookies source">
+          <option value="none">Off — public posts only</option>
+          <option value="chrome">Chrome</option>
+          <option value="edge">Edge</option>
+          <option value="firefox">Firefox</option>
+          <option value="brave">Brave</option>
+          <option value="opera">Opera</option>
+          <option value="vivaldi">Vivaldi</option>
+          <option value="chromium">Chromium</option>
+        </select>
+      </div>
+    </section>
+  </main>
+
+  <div id="toasts" class="toasts"></div>
+  <script src="main.js"></script>
+</body>
+</html>

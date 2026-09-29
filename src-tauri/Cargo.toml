@@ -1,0 +1,30 @@
+[package]
+name = "youtube-downloader"
+version = "0.1.0"
+description = "YouTube video downloader with full format picker"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+# Android/iOS builds require a library target; desktop uses the bin below.
+name = "youtube_downloader_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+# rustls (pure Rust) so the same dependency works on desktop and Android;
+# native-tls/OpenSSL cannot cross-compile to the Android target.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "charset", "http2"] }
+futures-util = "0.3"
+base64 = "0.22"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+# Desktop-only: these spawn external processes / open native dialogs.
+rfd = "0.15"
+dirs = "5"

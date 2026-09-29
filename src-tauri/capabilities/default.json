@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/schema/capabilities/2",
+  "identifier": "default",
+  "description": "Default capabilities for the YouTube Downloader app",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:allow-emit",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
+}
